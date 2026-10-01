@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>English Training Lab — V3</title>
+<title>English Training Lab — V3.2</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111;background:#f5f5f7}
 body{margin:0;padding:18px;max-width:820px;margin:auto}.card{background:#fff;border-radius:18px;padding:18px;margin:12px 0;box-shadow:0 2px 14px #0001}
@@ -100,13 +100,50 @@ async function calibrateNoise(ms=1700){
  vals.sort((a,b)=>a-b);noiseFloor=vals[Math.floor(vals.length*.80)]||.004;voiceThreshold=Math.min(.045,Math.max(.008,noiseFloor*2.6));
  setStatus("Calibração concluída ✓","good");await new Promise(r=>setTimeout(r,450));setStatus("");
 }
-function chooseVoice(){
- if(!("speechSynthesis" in window))return null;
- const voices=speechSynthesis.getVoices().filter(v=>/^en(-|_)/i.test(v.lang));if(!voices.length)return null;
- const score=v=>{let n=(v.name+" "+v.voiceURI).toLowerCase(),z=0;if(/premium|enhanced|natural/.test(n))z+=60;if(/samantha|ava|allison|susan|alex/.test(n))z+=30;if(/en-us/i.test(v.lang))z+=20;if(v.localService)z+=5;return z};
- return voices.sort((a,b)=>score(b)-score(a))[0];
+let narrationTurn=0, femaleVoiceIndex=0, maleVoiceIndex=0, fallbackVoiceIndex=0;
+
+function getNarrationVoices(){
+ if(!("speechSynthesis" in window))return {female:[],male:[],all:[]};
+ const all=speechSynthesis.getVoices().filter(v=>/^en(-|_)/i.test(v.lang));
+ const femaleNames=/samantha|ava|allison|susan|victoria|karen|moira|tessa|fiona|serena|kate|zoe|joanna|kendra|kimberly|salli|ivy|emma|olivia|aria|jenny|michelle|sonia|libby/i;
+ const maleNames=/alex|daniel|tom|fred|aaron|arthur|lee|oliver|ryan|guy|davis|tony|brian|joey|matthew|justin|kevin|christopher|eric/i;
+ const quality=v=>{let n=(v.name+" "+v.voiceURI).toLowerCase(),z=0;if(/premium|enhanced|natural/.test(n))z+=60;if(/en-us/i.test(v.lang))z+=20;if(v.localService)z+=5;return z};
+ const unique=arr=>[...new Map(arr.sort((a,b)=>quality(b)-quality(a)).map(v=>[v.name+"|"+v.lang,v])).values()];
+ return {
+  female:unique(all.filter(v=>femaleNames.test(v.name+" "+v.voiceURI))),
+  male:unique(all.filter(v=>maleNames.test(v.name+" "+v.voiceURI))),
+  all:unique(all)
+ };
 }
-function speakQuestion(text){return new Promise(resolve=>{if(!("speechSynthesis" in window)){resolve();return}speechSynthesis.cancel();ttsVoice=chooseVoice()||ttsVoice;let u=new SpeechSynthesisUtterance(text);u.lang="en-US";u.rate=.92;u.pitch=1;if(ttsVoice)u.voice=ttsVoice;u.onend=resolve;u.onerror=resolve;speechSynthesis.speak(u)})}
+
+function chooseVoice(){
+ const pools=getNarrationVoices();
+ if(!pools.all.length)return null;
+ const wantFemale=narrationTurn%2===0;
+ let chosen=null;
+ if(wantFemale && pools.female.length){
+  chosen=pools.female[femaleVoiceIndex%pools.female.length];femaleVoiceIndex++;
+ }else if(!wantFemale && pools.male.length){
+  chosen=pools.male[maleVoiceIndex%pools.male.length];maleVoiceIndex++;
+ }else{
+  chosen=pools.all[fallbackVoiceIndex%pools.all.length];fallbackVoiceIndex++;
+ }
+ narrationTurn++;
+ return chosen;
+}
+
+function speakQuestion(text){return new Promise(resolve=>{
+ if(!("speechSynthesis" in window)){resolve();return}
+ speechSynthesis.cancel();
+ ttsVoice=chooseVoice()||ttsVoice;
+ let u=new SpeechSynthesisUtterance(text);
+ u.lang=ttsVoice?.lang||"en-US";
+ u.rate=.84;
+ u.pitch=1;
+ if(ttsVoice)u.voice=ttsVoice;
+ u.onend=resolve;u.onerror=resolve;
+ speechSynthesis.speak(u);
+})}
 function normalizeBrowserText(t){t=(t||"").trim().replace(/\s+/g," ");if(!t)return "";t=t.toLowerCase().replace(/\bi\b/g,"I");t=t.charAt(0).toUpperCase()+t.slice(1);if(!/[.!?]$/.test(t))t+=".";return t}
 
 async function preloadWhisper(){
