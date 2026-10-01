@@ -1,68 +1,254 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>English Training Lab — Session 01</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>English Training Lab — V3</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111;background:#f5f5f7}
 body{margin:0;padding:18px;max-width:820px;margin:auto}.card{background:#fff;border-radius:18px;padding:18px;margin:12px 0;box-shadow:0 2px 14px #0001}
 h1{font-size:24px;margin:0 0 6px}.muted{color:#666;font-size:14px}.big{font-size:26px;font-weight:750;line-height:1.3;margin:20px 0}
-button{font-size:17px;border:0;border-radius:14px;padding:14px 16px;margin:5px;background:#111;color:#fff}
-.secondary{background:#e8e8ed;color:#111}.danger{background:#b42318}
+button{font-size:16px;border:0;border-radius:14px;padding:13px 15px;margin:5px;background:#111;color:#fff}
+button:disabled{opacity:.45}.secondary{background:#e8e8ed;color:#111}.danger{background:#b42318}.pause{background:#5b5b63}
 textarea{box-sizing:border-box;width:100%;font-size:16px;padding:12px;border:1px solid #d1d1d6;border-radius:12px;min-height:130px}
 .row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1}.metric{display:inline-block;background:#f1f1f4;border-radius:12px;padding:9px;margin:3px;font-size:14px}
 #meter{height:14px;background:#eee;border-radius:8px;overflow:hidden;margin:12px 0}#level{height:100%;width:0;background:#111}
 .hidden{display:none}.timeline{height:18px;border-radius:9px;background:#eee;overflow:hidden;display:flex;margin:10px 0}.speech{background:#222}.silence{background:#d8d8dd}
-.badge{display:inline-block;padding:7px 10px;border-radius:999px;background:#eee;margin:3px;font-size:13px}
-small{display:block;color:#666;margin-top:8px}
-</style></head><body>
-<div class="card"><h1>English Training Lab</h1><div class="muted">Rapid Response • Session 01</div></div>
+.badge{display:inline-block;padding:7px 10px;border-radius:999px;background:#eee;margin:3px;font-size:13px}.status{padding:10px 12px;background:#f1f1f4;border-radius:12px;margin:10px 0;font-size:14px}
+.good{background:#e8f5ea}.warn{background:#fff4dd}small{display:block;color:#666;margin-top:8px}.toolbar{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+select{width:100%;font-size:16px;padding:12px;border-radius:12px;margin:8px 0;border:1px solid #d1d1d6;background:#fff}
+</style></head>
+<body>
+<div class="card"><h1>English Training Lab</h1><div class="muted">Rapid Response • V3</div></div>
+
+<div id="resumeBox" class="card hidden">
+<h2>Sessão pausada encontrada</h2>
+<p id="resumeText"></p>
+<div class="row"><button id="resumeBtn">Continuar sessão</button><button id="discardBtn" class="secondary">Descartar e começar nova</button></div>
+</div>
 
 <div id="intro" class="card">
 <h2>Sessão pronta</h2>
 <span class="badge">10 situações</span><span class="badge">Meta de início ≤ 5 s</span><span class="badge">1–2 frases</span><span class="badge">Sem autocorreção</span>
-<p>Você não verá as próximas perguntas. Ao tocar em <b>Mostrar pergunta</b>, a situação aparece e a medição começa imediatamente. Responda com sua primeira produção.</p>
-<p><b>Não tente falar mais rápido.</b> O objetivo é começar em inglês rapidamente e manter a frase o mais contínua possível.</p>
+<p>Ao tocar em <b>Mostrar e ouvir pergunta</b>, a pergunta aparece e é narrada em inglês. <b>A latência começa somente quando a narração termina.</b></p>
+<p>A transcrição principal usa <b>Whisper rodando no próprio navegador</b>. Na primeira utilização, o modelo precisa ser baixado e pode demorar. Se ele não funcionar no aparelho, o Lab usa a transcrição do navegador como fallback.</p>
 <button id="start">Começar sessão</button>
-<small>Use em ambiente silencioso. O áudio é processado no navegador durante a sessão.</small>
+<small>Ao iniciar, fique em silêncio por cerca de 2 segundos para calibrar o ambiente.</small>
 </div>
 
 <div id="run" class="card hidden">
 <div class="muted" id="progress"></div><div id="question" class="big">Pergunta escondida</div>
 <div><span id="lat" class="metric">Latência: —</span><span id="dur" class="metric">Resposta: —</span></div>
 <div id="meter"><div id="level"></div></div><div id="timeline" class="timeline"></div>
-<button id="show">Mostrar pergunta</button><button id="finish" class="danger hidden">Terminei</button>
+<div id="status" class="status hidden"></div>
+<button id="show">Mostrar e ouvir pergunta</button><button id="finish" class="danger hidden">Terminei a resposta</button>
+
 <div id="review" class="hidden">
 <label><b>Transcrição captada</b></label><textarea id="transcript"></textarea>
+<div id="sttInfo" class="muted"></div>
 <div class="row"><button class="feel secondary" data-v="Fácil">🟢 Fácil</button><button class="feel secondary" data-v="Pensei">🟡 Pensei</button><button class="feel secondary" data-v="Travei">🔴 Travei</button></div>
-<select id="reason" style="width:100%;font-size:16px;padding:12px;border-radius:12px;margin:8px 0">
+<select id="reason">
 <option value="">Motivo do travamento (opcional)</option><option>Vocabulário</option><option>Gramática/estrutura</option><option>Não entendi a pergunta</option><option>Não sabia o que responder</option><option>Outro</option>
 </select>
-<audio id="audio" controls style="width:100%"></audio><button id="next">Salvar e continuar</button>
-</div></div>
+<audio id="audio" controls style="width:100%"></audio>
+<button id="next">Salvar e continuar</button>
+</div>
 
-<div id="done" class="card hidden"><h2>Sessão concluída</h2><div id="summary"></div>
+<div class="toolbar">
+<button id="pauseBtn" class="pause">⏸ Pausar e continuar mais tarde</button>
+<button id="endBtn" class="secondary">■ Encerrar e gerar relatório</button>
+</div>
+<small>Se pausar durante uma resposta ainda não salva, essa pergunta será repetida quando você continuar.</small>
+</div>
+
+<div id="done" class="card hidden"><h2 id="doneTitle">Sessão concluída</h2><div id="summary"></div>
 <textarea id="report" style="min-height:340px"></textarea>
 <div class="row"><button id="copy">Copiar relatório para o ChatGPT</button><button id="share" class="secondary">Compartilhar</button></div>
-<small>Cole o relatório na nossa conversa. Eu avaliarei estruturas, vocabulário, latência e fragmentação antes de definir a próxima atividade.</small></div>
+<button id="newSession" class="secondary">Começar nova sessão</button>
+<small>O relatório contém apenas as perguntas efetivamente salvas.</small></div>
 
 <script>
-const QUESTIONS = ["A salesperson on your team knows the products well, but his sales are still low. What would you do?", "A customer says your competitor has a lower price. How would you respond?", "Your company is launching a new product next month. What should the sales team do before the launch?", "One of your salespeople is often late for customer meetings. What would you tell him?", "A customer is interested in your product but still has some doubts. What should the salesperson do?", "Sales are lower than expected this month. What is one action your team could take?", "A new salesperson joins your team tomorrow. What do you expect him to do in his first weeks?", "A customer does not understand why your product costs more. How could you explain the difference?", "Your team has a meeting tomorrow and the results are not good. What is the first thing you need to discuss?", "A salesperson has good relationships with customers but weak product knowledge. How can you help him?"];
+const QUESTIONS=["A salesperson on your team knows the products well, but his sales are still low. What would you do?","A customer says your competitor has a lower price. How would you respond?","Your company is launching a new product next month. What should the sales team do before the launch?","One of your salespeople is often late for customer meetings. What would you tell him?","A customer is interested in your product but still has some doubts. What should the salesperson do?","Sales are lower than expected this month. What is one action your team could take?","A new salesperson joins your team tomorrow. What do you expect him to do in his first weeks?","A customer does not understand why your product costs more. How could you explain the difference?","Your team has a meeting tomorrow and the results are not good. What is the first thing you need to discuss?","A salesperson has good relationships with customers but weak product knowledge. How can you help him?"];
 const CONFIG={session:"Rapid Response — Session 01",target:5,pause:1,questions:QUESTIONS};
-let qs=[...CONFIG.questions].sort(()=>Math.random()-.5),i=0,res=[],stream,ctx,an,raf,rec,chunks=[],recognition,recText="",shownAt,speechStart,finishAt,speaking=false,segStart,segments=[],feel="";
-const $=x=>document.getElementById(x),now=()=>performance.now(),s=x=>(x/1000).toFixed(2);
-$("start").onclick=async()=>{try{stream=await navigator.mediaDevices.getUserMedia({audio:true});ctx=new(window.AudioContext||window.webkitAudioContext)();await ctx.resume();let src=ctx.createMediaStreamSource(stream);an=ctx.createAnalyser();an.fftSize=1024;src.connect(an)}catch(e){alert("Não consegui acessar o microfone. Libere a permissão e tente novamente.");return}$("intro").classList.add("hidden");$("run").classList.remove("hidden");prep()};
-function prep(){$("progress").textContent=`Pergunta ${i+1} de ${qs.length}`;$("question").textContent="Pergunta escondida";$("show").classList.remove("hidden");$("finish").classList.add("hidden");$("review").classList.add("hidden");$("lat").textContent="Latência: —";$("dur").textContent="Resposta: —";$("timeline").innerHTML="";$("transcript").value="";$("reason").value="";feel=""}
-$("show").onclick=()=>{$("question").textContent=qs[i];$("show").classList.add("hidden");$("finish").classList.remove("hidden");shownAt=now();speechStart=null;segments=[];speaking=false;segStart=shownAt;chunks=[];recText="";rec=new MediaRecorder(stream);rec.ondataavailable=e=>chunks.push(e.data);rec.start();startSR();monitor()};
-function startSR(){let SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return;recognition=new SR();recognition.lang="en-US";recognition.continuous=true;recognition.interimResults=true;recognition.onresult=e=>{let t="";for(let j=0;j<e.results.length;j++)t+=e.results[j][0].transcript+" ";recText=t.trim()};recognition.onerror=()=>{};try{recognition.start()}catch(e){}}
-function monitor(){let data=new Uint8Array(an.fftSize),threshold=.035;function loop(){an.getByteTimeDomainData(data);let sum=0;for(let v of data){let x=(v-128)/128;sum+=x*x}let rms=Math.sqrt(sum/data.length);$("level").style.width=Math.min(100,rms*900)+"%";let voice=rms>threshold,t=now();if(voice!==speaking){if(speaking)segments.push({type:"speech",start:segStart,end:t});else{if(speechStart!==null)segments.push({type:"silence",start:segStart,end:t});else speechStart=t}speaking=voice;segStart=t}if(speechStart===null)$("lat").textContent=`Latência: ${s(t-shownAt)} s`;else $("dur").textContent=`Resposta: ${s(t-speechStart)} s`;raf=requestAnimationFrame(loop)}loop()}
-$("finish").onclick=()=>{finishAt=now();cancelAnimationFrame(raf);if(speaking)segments.push({type:"speech",start:segStart,end:finishAt});else if(speechStart!==null)segments.push({type:"silence",start:segStart,end:finishAt});rec.stop();if(recognition)try{recognition.stop()}catch(e){};rec.onstop=()=>{let blob=new Blob(chunks,{type:rec.mimeType});$("audio").src=URL.createObjectURL(blob);$("transcript").value=recText;timeline();$("review").classList.remove("hidden");$("finish").classList.add("hidden")}};
-function timeline(){$("timeline").innerHTML="";if(speechStart===null)return;let total=Math.max(1,finishAt-speechStart);segments.filter(x=>x.end>=speechStart).forEach(x=>{let d=document.createElement("div");d.className=x.type;d.style.width=((x.end-x.start)/total*100)+"%";$("timeline").appendChild(d)})}
+const SAVEKEY="englishTrainingLabV3";
+let qs=[],i=0,res=[],stream,ctx,an,raf,rec,chunks=[],recognition,browserText="",latencyAt,speechStart,finishAt,speaking=false,segStart,segments=[],feel="",noiseFloor=.004,voiceThreshold=.012,ttsVoice=null,currentBlob=null,whisper=null,whisperLoading=null,activeCapture=false;
+const $=x=>document.getElementById(x),now=()=>performance.now(),sec=x=>(x/1000).toFixed(2);
+
+function shuffle(a){a=[...a];for(let n=a.length-1;n>0;n--){let j=Math.floor(Math.random()*(n+1));[a[n],a[j]]=[a[j],a[n]]}return a}
+function setStatus(text,type=""){let e=$("status");if(!text){e.classList.add("hidden");return}e.textContent=text;e.className="status "+type;e.classList.remove("hidden")}
+function saveState(paused=true){localStorage.setItem(SAVEKEY,JSON.stringify({v:3,qs,i,res,paused,session:CONFIG.session,savedAt:new Date().toISOString()}))}
+function clearState(){localStorage.removeItem(SAVEKEY)}
+function loadSaved(){try{return JSON.parse(localStorage.getItem(SAVEKEY)||"null")}catch{return null}}
+function checkSaved(){
+ const s=loadSaved();if(s&&s.v===3&&s.qs?.length&&s.i<s.qs.length){
+  $("resumeBox").classList.remove("hidden");$("intro").classList.add("hidden");
+  $("resumeText").textContent=`Você respondeu ${s.res?.length||0} de ${s.qs.length} perguntas.`;
+ }
+}
+async function ensureMic(){
+ if(stream)return true;
+ try{
+  stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});
+  ctx=new(window.AudioContext||window.webkitAudioContext)();await ctx.resume();
+  let src=ctx.createMediaStreamSource(stream);an=ctx.createAnalyser();an.fftSize=2048;src.connect(an);return true;
+ }catch(e){alert("Não consegui acessar o microfone. Libere a permissão e tente novamente.");return false}
+}
+function rmsNow(){let data=new Uint8Array(an.fftSize);an.getByteTimeDomainData(data);let sum=0;for(let v of data){let x=(v-128)/128;sum+=x*x}return Math.sqrt(sum/data.length)}
+async function calibrateNoise(ms=1700){
+ setStatus("Calibrando ruído ambiente… fique em silêncio por um instante.");
+ let vals=[],end=now()+ms;while(now()<end){vals.push(rmsNow());await new Promise(r=>setTimeout(r,40))}
+ vals.sort((a,b)=>a-b);noiseFloor=vals[Math.floor(vals.length*.80)]||.004;voiceThreshold=Math.min(.045,Math.max(.008,noiseFloor*2.6));
+ setStatus("Calibração concluída ✓","good");await new Promise(r=>setTimeout(r,450));setStatus("");
+}
+function chooseVoice(){
+ if(!("speechSynthesis" in window))return null;
+ const voices=speechSynthesis.getVoices().filter(v=>/^en(-|_)/i.test(v.lang));if(!voices.length)return null;
+ const score=v=>{let n=(v.name+" "+v.voiceURI).toLowerCase(),z=0;if(/premium|enhanced|natural/.test(n))z+=60;if(/samantha|ava|allison|susan|alex/.test(n))z+=30;if(/en-us/i.test(v.lang))z+=20;if(v.localService)z+=5;return z};
+ return voices.sort((a,b)=>score(b)-score(a))[0];
+}
+function speakQuestion(text){return new Promise(resolve=>{if(!("speechSynthesis" in window)){resolve();return}speechSynthesis.cancel();ttsVoice=chooseVoice()||ttsVoice;let u=new SpeechSynthesisUtterance(text);u.lang="en-US";u.rate=.92;u.pitch=1;if(ttsVoice)u.voice=ttsVoice;u.onend=resolve;u.onerror=resolve;speechSynthesis.speak(u)})}
+function normalizeBrowserText(t){t=(t||"").trim().replace(/\s+/g," ");if(!t)return "";t=t.toLowerCase().replace(/\bi\b/g,"I");t=t.charAt(0).toUpperCase()+t.slice(1);if(!/[.!?]$/.test(t))t+=".";return t}
+
+async function preloadWhisper(){
+ if(whisper||whisperLoading)return whisperLoading;
+ $("sttInfo").textContent="Preparando transcrição Whisper…";
+ whisperLoading=(async()=>{
+  try{
+   const mod=await import("https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.0");
+   mod.env.allowLocalModels=false;
+   whisper=await mod.pipeline("automatic-speech-recognition","onnx-community/whisper-tiny.en",{dtype:"q8"});
+   return whisper;
+  }catch(e){console.warn("Whisper indisponível",e);whisper=null;return null}
+ })();
+ return whisperLoading;
+}
+async function blobTo16k(blob){
+ const ab=await blob.arrayBuffer();const audioBuf=await ctx.decodeAudioData(ab.slice(0));
+ const len=Math.ceil(audioBuf.duration*16000),out=new Float32Array(len),channels=audioBuf.numberOfChannels;
+ for(let n=0;n<len;n++){let pos=n*audioBuf.sampleRate/16000,idx=Math.min(audioBuf.length-1,Math.floor(pos)),sum=0;for(let c=0;c<channels;c++)sum+=audioBuf.getChannelData(c)[idx];out[n]=sum/channels}
+ return out;
+}
+async function transcribeBest(blob){
+ $("sttInfo").textContent="Transcrevendo com Whisper…";
+ try{
+  let w=whisper||await preloadWhisper();
+  if(w){
+   let audio=await blobTo16k(blob);
+   let out=await w(audio,{language:"en",task:"transcribe",chunk_length_s:30,stride_length_s:4});
+   let t=(out?.text||"").trim();
+   if(t){$("sttInfo").textContent="Transcrição: Whisper local no navegador ✓";return t}
+  }
+ }catch(e){console.warn("Falha no Whisper",e)}
+ $("sttInfo").textContent="Whisper indisponível neste aparelho; usando reconhecimento do navegador.";
+ return normalizeBrowserText(browserText);
+}
+
+$("start").onclick=async()=>{
+ if(!await ensureMic())return;
+ qs=shuffle(CONFIG.questions);i=0;res=[];clearState();
+ $("intro").classList.add("hidden");$("run").classList.remove("hidden");prep();await calibrateNoise();preloadWhisper();
+};
+$("resumeBtn").onclick=async()=>{
+ if(!await ensureMic())return;
+ let s=loadSaved();if(!s)return;
+ qs=s.qs;i=s.i;res=s.res||[];
+ $("resumeBox").classList.add("hidden");$("run").classList.remove("hidden");prep();await calibrateNoise();preloadWhisper();
+};
+$("discardBtn").onclick=()=>{clearState();$("resumeBox").classList.add("hidden");$("intro").classList.remove("hidden")};
+
+function prep(){
+ activeCapture=false;currentBlob=null;
+ $("progress").textContent=`Pergunta ${i+1} de ${qs.length}`;$("question").textContent="Pergunta escondida";
+ $("show").classList.remove("hidden");$("show").disabled=false;$("finish").classList.add("hidden");$("review").classList.add("hidden");
+ $("lat").textContent="Latência: —";$("dur").textContent="Resposta: —";$("timeline").innerHTML="";$("transcript").value="";$("reason").value="";$("sttInfo").textContent="";feel="";setStatus("");
+}
+$("show").onclick=async()=>{
+ $("show").disabled=true;$("question").textContent=qs[i];$("show").classList.add("hidden");
+ setStatus("🔊 Ouça a pergunta…");await speakQuestion(qs[i]);setStatus("Agora responda.","good");startCapture();
+};
+function startCapture(){
+ latencyAt=now();speechStart=null;finishAt=null;segments=[];speaking=false;segStart=latencyAt;chunks=[];browserText="";activeCapture=true;
+ rec=new MediaRecorder(stream);rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};rec.start();startBrowserSR();monitor();$("finish").classList.remove("hidden");
+}
+function startBrowserSR(){
+ let SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return;
+ recognition=new SR();recognition.lang="en-US";recognition.continuous=true;recognition.interimResults=true;
+ recognition.onresult=e=>{let t="";for(let j=0;j<e.results.length;j++)t+=e.results[j][0].transcript+" ";browserText=t.trim()};recognition.onerror=()=>{};try{recognition.start()}catch(e){}
+}
+function monitor(){
+ const START_HOLD=180,STOP_HOLD=650,stopThreshold=Math.max(noiseFloor*1.5,voiceThreshold*.58);let startCandidate=null,stopCandidate=null;
+ function loop(){
+  let rms=rmsNow(),t=now();$("level").style.width=Math.min(100,rms/Math.max(voiceThreshold,.001)*45)+"%";
+  if(!speaking){
+   if(rms>voiceThreshold){if(startCandidate===null)startCandidate=t;if(t-startCandidate>=START_HOLD){let a=startCandidate;if(speechStart===null){speechStart=a;segStart=a}else{segments.push({type:"silence",start:segStart,end:a});segStart=a}speaking=true;startCandidate=null;stopCandidate=null}}
+   else startCandidate=null;
+  }else{
+   if(rms<stopThreshold){if(stopCandidate===null)stopCandidate=t;if(t-stopCandidate>=STOP_HOLD){let a=stopCandidate;segments.push({type:"speech",start:segStart,end:a});speaking=false;segStart=a;stopCandidate=null;startCandidate=null}}
+   else stopCandidate=null;
+  }
+  if(speechStart===null)$("lat").textContent=`Latência: ${sec(t-latencyAt)} s`;else $("dur").textContent=`Resposta: ${sec(t-speechStart)} s`;
+  raf=requestAnimationFrame(loop);
+ }loop();
+}
+function stopCapture(discard=false){
+ return new Promise(resolve=>{
+  if(!activeCapture){resolve(null);return}
+  finishAt=now();cancelAnimationFrame(raf);activeCapture=false;
+  if(speechStart!==null){if(speaking)segments.push({type:"speech",start:segStart,end:finishAt});else segments.push({type:"silence",start:segStart,end:finishAt})}
+  if(recognition)try{recognition.stop()}catch(e){}
+  if(!rec||rec.state==="inactive"){resolve(null);return}
+  rec.onstop=()=>{currentBlob=discard?null:new Blob(chunks,{type:rec.mimeType});resolve(currentBlob)};rec.stop();
+ });
+}
+$("finish").onclick=async()=>{
+ $("finish").disabled=true;let blob=await stopCapture(false);$("finish").disabled=false;$("finish").classList.add("hidden");
+ if(blob){$("audio").src=URL.createObjectURL(blob);timeline();$("review").classList.remove("hidden");$("transcript").value=normalizeBrowserText(browserText);try{let best=await transcribeBest(blob);if(best)$("transcript").value=best.trim()}catch(e){console.warn(e)}}
+};
+function timeline(){
+ $("timeline").innerHTML="";if(speechStart===null)return;let total=Math.max(1,finishAt-speechStart);
+ segments.filter(x=>x.end>=speechStart).forEach(x=>{let d=document.createElement("div");d.className=x.type;d.style.width=((x.end-x.start)/total*100)+"%";$("timeline").appendChild(d)});
+}
 document.querySelectorAll(".feel").forEach(b=>b.onclick=()=>{feel=b.dataset.v;document.querySelectorAll(".feel").forEach(x=>x.style.outline="");b.style.outline="3px solid #888"});
-$("next").onclick=()=>{let p=CONFIG.pause*1000,pauses=segments.filter(x=>x.type==="silence"&&x.end-x.start>=p),speech=segments.filter(x=>x.type==="speech").reduce((a,x)=>a+x.end-x.start,0),sil=segments.filter(x=>x.type==="silence").reduce((a,x)=>a+x.end-x.start,0);res.push({q:qs[i],lat:speechStart?speechStart-shownAt:null,dur:speechStart?finishAt-speechStart:0,speech,sil,max:pauses.length?Math.max(...pauses.map(x=>x.end-x.start)):0,pauses:pauses.length,text:$("transcript").value.trim(),feel,reason:$("reason").value});i++;if(i<qs.length)prep();else done()};
-function done(){$("run").classList.add("hidden");$("done").classList.remove("hidden");let valid=res.filter(x=>x.lat!==null),avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0,al=avg(valid.map(x=>x.lat)),ad=avg(valid.map(x=>x.dur)),within=valid.filter(x=>x.lat<=CONFIG.target*1000).length;$("summary").innerHTML=`<span class="metric">Início médio ${s(al)}s</span><span class="metric">≤ ${CONFIG.target}s: ${within}/${valid.length}</span><span class="metric">Resposta média ${s(ad)}s</span>`;let t=`ENGLISH TRAINING LAB\nSessão: ${CONFIG.session}\nMeta de início: ≤ ${CONFIG.target}s\nPausa relevante: ≥ ${CONFIG.pause}s\nQuestões: ${res.length}\nLatência inicial média: ${s(al)}s\nDentro da meta: ${within}/${valid.length}\nDuração média: ${s(ad)}s\n\n`;res.forEach((r,n)=>t+=`Q${n+1}: ${r.q}\nLatência: ${r.lat===null?"não detectada":s(r.lat)+"s"} | Duração: ${s(r.dur)}s | Fala: ${s(r.speech)}s | Silêncio: ${s(r.sil)}s | Maior pausa: ${s(r.max)}s | Pausas ≥${CONFIG.pause}s: ${r.pauses}\nAutoavaliação: ${r.feel||"—"}${r.reason?" | Motivo: "+r.reason:""}\nTranscrição: ${r.text||"[sem transcrição]"}\n\n`);$("report").value=t}
+function commitCurrent(){
+ let p=CONFIG.pause*1000,pauses=segments.filter(x=>x.type==="silence"&&x.end-x.start>=p),speech=segments.filter(x=>x.type==="speech").reduce((a,x)=>a+x.end-x.start,0),sil=segments.filter(x=>x.type==="silence").reduce((a,x)=>a+x.end-x.start,0);
+ res.push({q:qs[i],lat:speechStart?speechStart-latencyAt:null,dur:speechStart?finishAt-speechStart:0,speech,sil,max:pauses.length?Math.max(...pauses.map(x=>x.end-x.start)):0,pauses:pauses.length,text:$("transcript").value.trim(),feel,reason:$("reason").value});
+ i++;saveState(false);
+}
+$("next").onclick=()=>{commitCurrent();if(i<qs.length)prep();else generateReport(false)};
+
+$("pauseBtn").onclick=async()=>{
+ if(activeCapture){
+  if(!confirm("Você está no meio de uma resposta. Ela ainda não será salva e esta pergunta será repetida quando você voltar. Pausar mesmo assim?"))return;
+  await stopCapture(true);
+ }else if(!$("review").classList.contains("hidden")){
+  commitCurrent();
+ }
+ if("speechSynthesis" in window)speechSynthesis.cancel();saveState(true);
+ $("run").classList.add("hidden");$("resumeBox").classList.remove("hidden");
+ $("resumeText").textContent=`Sessão pausada. ${res.length} de ${qs.length} perguntas respondidas. Você pode fechar esta página e continuar mais tarde.`;
+};
+$("endBtn").onclick=async()=>{
+ if(activeCapture){
+  if(!confirm("Você está no meio de uma resposta. Ela ainda não foi concluída e não entrará no relatório. Encerrar mesmo assim?"))return;
+  await stopCapture(true);
+ }else if(!$("review").classList.contains("hidden")){
+  commitCurrent();
+ }
+ if("speechSynthesis" in window)speechSynthesis.cancel();generateReport(true);
+};
+
+function generateReport(early){
+ clearState();$("run").classList.add("hidden");$("resumeBox").classList.add("hidden");$("done").classList.remove("hidden");
+ $("doneTitle").textContent=early?"Sessão encerrada — relatório parcial":"Sessão concluída";
+ let valid=res.filter(x=>x.lat!==null),avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0,al=avg(valid.map(x=>x.lat)),ad=avg(valid.map(x=>x.dur)),within=valid.filter(x=>x.lat<=CONFIG.target*1000).length;
+ $("summary").innerHTML=`<span class="metric">Respondidas ${res.length}/${qs.length}</span><span class="metric">Início médio ${valid.length?sec(al):"—"}s</span><span class="metric">≤ ${CONFIG.target}s: ${within}/${valid.length}</span><span class="metric">Resposta média ${valid.length?sec(ad):"—"}s</span>`;
+ let t=`ENGLISH TRAINING LAB\nSessão: ${CONFIG.session}${early?" — relatório parcial":""}\nRespondidas: ${res.length}/${qs.length}\nMeta de início: ≤ ${CONFIG.target}s\nPausa relevante: ≥ ${CONFIG.pause}s\nLatência inicial média: ${valid.length?sec(al)+"s":"—"}\nDentro da meta: ${within}/${valid.length}\nDuração média: ${valid.length?sec(ad)+"s":"—"}\n\n`;
+ res.forEach((r,n)=>t+=`Q${n+1}: ${r.q}\nLatência: ${r.lat===null?"não detectada":sec(r.lat)+"s"} | Duração: ${sec(r.dur)}s | Fala: ${sec(r.speech)}s | Silêncio: ${sec(r.sil)}s | Maior pausa: ${sec(r.max)}s | Pausas ≥${CONFIG.pause}s: ${r.pauses}\nAutoavaliação: ${r.feel||"—"}${r.reason?" | Motivo: "+r.reason:""}\nTranscrição: ${r.text||"[sem transcrição]"}\n\n`);
+ $("report").value=t;
+}
 $("copy").onclick=async()=>{await navigator.clipboard.writeText($("report").value);$("copy").textContent="Copiado ✓"};
 $("share").onclick=async()=>{let t=$("report").value;if(navigator.share)await navigator.share({title:CONFIG.session,text:t});else{await navigator.clipboard.writeText(t);alert("Relatório copiado.")}};
+$("newSession").onclick=()=>{clearState();location.reload()};
+checkSaved();
 </script>
-
 </body></html>
