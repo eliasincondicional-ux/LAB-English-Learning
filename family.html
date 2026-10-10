@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Family English Lab — V5.1</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#182333;background:#f4f6fa}*{box-sizing:border-box}
+body{margin:0 auto;padding:20px 14px 40px;max-width:800px}h1{font-size:26px;margin:0}h2{font-size:20px;margin:0 0 12px}p{line-height:1.5}.muted,small{color:#627086}.small{font-size:13px}.card{background:white;border:1px solid #e2e7ee;border-radius:20px;padding:20px;margin:14px 0;box-shadow:0 4px 20px #18233308}.brand{display:flex;align-items:center;gap:12px}.brand-icon{background:#0c827a;color:white;font-size:24px;border-radius:14px;width:50px;height:50px;display:grid;place-items:center}.badge{display:inline-block;border-radius:20px;padding:7px 11px;background:#eaf2f2;color:#245d59;font-size:12px;margin:3px 5px 3px 0}.row{display:flex;gap:9px;flex-wrap:wrap}.row>*{flex:1}.profiles{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:14px 0}.profile{border:2px solid #dce5ed;background:#fff;color:#182333;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 5px}.profile strong{font-size:15px}.profile span{font-size:11px;color:#627086}.profile.active{border-color:#0c827a;background:#eef8f5}.profile .emoji{font-size:25px}button{cursor:pointer;border:0;border-radius:13px;background:#182333;color:#fff;padding:12px 15px;font-size:15px;font-weight:600}button.secondary{background:#eaf0f5;color:#182333}button.danger{background:#ad3030}button:disabled{opacity:.5;cursor:not-allowed}textarea,input,select{width:100%;padding:12px;border:1px solid #cdd7e2;border-radius:12px;background:white;color:#182333;font:inherit;margin:8px 0}textarea{min-height:94px;resize:vertical}.hidden{display:none!important}.question{font-size:25px;line-height:1.4;font-weight:750;padding:14px 0 20px}.metric{background:#edf1f6;border-radius:10px;padding:10px;font-size:13px;display:inline-block;margin:3px}.status{padding:12px;border-radius:12px;background:#f0f4f8;color:#394b60;margin:12px 0}.good{background:#e5f6ee;color:#145f42}.meter{height:13px;background:#e9edf2;border-radius:10px;overflow:hidden;margin:14px 0}.meter>div{height:100%;background:#0c827a;width:0}.timeline{height:15px;display:flex;overflow:hidden;border-radius:9px;background:#edf0f4;margin:10px 0}.timeline .speech{background:#0c827a}.timeline .silence{background:#c5ced8}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.toolbar button{flex:1}.progress{font-weight:650;color:#526579}.feel.active{outline:3px solid #0c827a}.note{border-left:4px solid #0c827a;padding:10px 13px;background:#f0f8f6;border-radius:5px;font-size:13px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat{background:#f0f4f8;border-radius:12px;padding:12px}.stat strong{display:block;font-size:23px}.stat span{font-size:12px;color:#627086}audio{width:100%;margin:12px 0}label{font-weight:650;font-size:14px;display:block;margin-top:12px}@media(max-width:420px){.card{padding:15px}.question{font-size:22px}.profiles{gap:6px}.profile{padding:10px 3px}}
+</style>
+</head>
+<body>
+<div class="card"><div class="brand"><div class="brand-icon">🎓</div><div><h1>Family English Lab</h1><div class="muted small">V5.1 • Elias, Isa e Mônica • treinamento individual</div></div></div></div>
+<div id="setup" class="card">
+<h2>Quem vai estudar?</h2>
+<div class="profiles" id="profiles">
+<button class="profile active" data-profile="elias"><span class="emoji">💼</span><strong>Elias</strong><span>Profissional</span></button>
+<button class="profile" data-profile="isa"><span class="emoji">🎒</span><strong>Isa</strong><span>Adolescente</span></button>
+<button class="profile" data-profile="monica"><span class="emoji">✈️</span><strong>Mônica</strong><span>Adulta</span></button>
+</div>
+<p id="profileDesc" class="note"></p>
+<div class="row"><span class="badge" id="countBadge">Aguardando plano do GPT</span><span class="badge" id="targetBadge">Metas definidas pelo GPT</span><span class="badge">Uma pergunta por vez</span></div>
+<div id="linkedPlan" class="status good hidden" aria-live="polite"><b>✓ Exercício carregado pelo ChatGPT!</b><p class="small" style="margin:6px 0 0">Perguntas, metas e perfil já estão configurados. Toque em <b>Iniciar exercício</b> para permitir o microfone e começar.</p><button id="editLinked" class="secondary" style="margin-top:10px">Ver ou editar plano</button></div>
+<div id="manualPlan"><label for="planInput">Plano da sessão criado pelo ChatGPT</label>
+<textarea id="planInput" spellcheck="false" style="min-height:200px;font:13px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace" placeholder='Cole o JSON criado pelo GPT, por exemplo:
+{
+  "profile":"isa",
+  "session":"Diagnóstico 1",
+  "questions":["What do you like to do?"],
+  "goals":{"start_seconds":null,"pause_seconds":1}
+}'></textarea>
+<button id="validate" class="secondary">Validar plano</button></div>
+<button id="start" disabled style="width:100%;margin-top:12px;background:#0c827a;font-size:17px">Iniciar exercício</button>
+<div id="planStatus" class="status" aria-live="polite">Peça ao ChatGPT um plano de sessão para o Family English Lab V5.1. Sem um plano válido, o aplicativo não escolhe conteúdo nem metas por conta própria.</div>
+<p class="muted small">O ChatGPT decide <b>quais perguntas, quantas perguntas e quais metas</b>. O link de exercício pode carregar tudo automaticamente, sem copiar e colar. O Lab apenas apresenta, narra, grava, mede e gera um relatório. O aplicativo não se conecta ao ChatGPT automaticamente.</p>
+<p class="muted small">A primeira utilização pode exigir permissão de microfone. A transcrição automática pode falhar; confira o texto antes de enviar o relatório.</p>
+</div>
+<div id="resume" class="card hidden"><h2>Sessão pausada</h2><p id="resumeDesc"></p><div class="row"><button id="resumeBtn">Continuar</button><button class="secondary" id="discard">Descartar</button></div></div>
+<div id="run" class="card hidden">
+<div class="progress" id="progress"></div><div class="question" id="question">Pergunta escondida</div>
+<div id="metrics"><span id="latency" class="metric">Início: —</span><span id="duration" class="metric">Resposta: —</span></div>
+<div class="meter"><div id="level"></div></div><div id="timeline" class="timeline"></div><div id="status" class="status">Pronto para começar.</div>
+<button id="show">Mostrar e ouvir pergunta</button><button id="ready" class="hidden">🎙️ Vou responder agora</button><button id="finish" class="danger hidden">Terminei minha resposta</button>
+<div id="review" class="hidden"><label for="transcript">Transcrição (corrija se necessário)</label><textarea id="transcript"></textarea><div id="transcriptStatus" class="muted small"></div>
+<div class="row"><button class="feel secondary" data-feel="Fácil">🟢 Fácil</button><button class="feel secondary" data-feel="Pensei">🟡 Pensei</button><button class="feel secondary" data-feel="Travei">🔴 Travei</button></div>
+<select id="reason"><option value="">Dificuldade principal (opcional)</option><option>Não entendi a pergunta</option><option>Não sabia o vocabulário</option><option>Não consegui montar a frase</option><option>Não sabia o que responder</option><option>Outro</option></select>
+<audio id="audio" controls></audio><button id="next">Salvar resposta e continuar</button></div>
+<div class="toolbar"><button class="secondary" id="pause">⏸ Pausar</button><button class="secondary" id="end">Encerrar e gerar relatório</button></div>
+<p class="muted small">Ao pausar durante uma gravação, a resposta não salva será repetida depois. Metas de tempo só aparecem se o ChatGPT as definir no plano.</p>
+</div>
+<div id="done" class="card hidden"><h2 id="doneTitle">Sessão concluída</h2><div id="summary"></div><label for="report">Relatório para enviar ao ChatGPT</label><textarea id="report" style="min-height:310px"></textarea><div class="row"><button id="copy">Copiar relatório</button><button class="secondary" id="share">Compartilhar</button></div><button class="secondary" id="again" style="margin-top:10px">Nova sessão</button></div>
+<div class="card"><h2>Meu histórico neste aparelho</h2><div id="history" class="stats"></div><p class="muted small">Histórico local, separado por perfil e por navegador. Não sincroniza entre celulares nem com o ChatGPT. A evolução de habilidade é avaliada pelo tutor a partir das respostas, não apenas pelo tempo.</p></div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id), now=()=>performance.now(),fmt=ms=>(Math.max(0,ms)/1000).toFixed(2);
+const PROFILES={elias:{name:'Elias'},isa:{name:'Isa'},monica:{name:'Mônica'}};
+let profile='elias',questions=[],answers=[],index=0,session='',plan=null,stream=null,audioCtx=null,analyser=null,recorder=null,chunks=[],recording=false,recordStart=0,latencyStart=0,latencyMs=0,stopAt=0,raf=0,recognition=null,recognized='',segments=[],segmentStart=0,speaking=false,noise=.008,blob=null,feel='',captureId=0,voicePromise=null;
+const hp=new URLSearchParams(location.hash.slice(1));
+function decodeBase64url(s){try{let x=s.replace(/-/g,'+').replace(/_/g,'/');let raw=atob(x);return new TextDecoder().decode(Uint8Array.from(raw,c=>c.charCodeAt(0)))}catch(e){return ''}}
+function key(){return 'familyLabV5:session:'+profile}function historyKey(){return 'familyLabV5:history:'+profile}
+function parsePlan(input){
+ let data;
+ try{data=JSON.parse(input)}catch(e){throw Error('O plano precisa ser JSON válido. Copie somente o bloco JSON enviado pelo ChatGPT.')}
+ if(!data||Array.isArray(data)||typeof data!=='object')throw Error('O plano precisa ser um objeto JSON.');
+ if(data.version!==undefined && data.version!==5)throw Error('Versão de plano não suportada; peça um plano para V5.');
+ if(!PROFILES[data.profile])throw Error('Perfil inválido: use elias, isa ou monica.');
+ if(typeof data.session!=='string'||!data.session.trim()||data.session.length>160)throw Error('Informe o nome da sessão (até 160 caracteres).');
+ if(!Array.isArray(data.questions)||!data.questions.length||data.questions.length>50)throw Error('O GPT deve enviar de 1 a 50 perguntas no campo questions.');
+ if(!data.questions.every(q=>typeof q==='string'&&q.trim()&&q.length<=700))throw Error('Cada pergunta precisa ser um texto não vazio, de até 700 caracteres.');
+ if(!data.goals||typeof data.goals!=='object'||Array.isArray(data.goals))throw Error('O GPT precisa definir goals com start_seconds e pause_seconds.');
+ const g=data.goals;
+ if(!Object.hasOwn(g,'start_seconds')||!Object.hasOwn(g,'pause_seconds'))throw Error('Faltam as metas start_seconds e/ou pause_seconds.');
+ if(g.start_seconds!==null&&(!Number.isFinite(g.start_seconds)||g.start_seconds<=0||g.start_seconds>120))throw Error('start_seconds deve ser null (sem meta) ou entre 0 e 120 segundos.');
+ if(!Number.isFinite(g.pause_seconds)||g.pause_seconds<.3||g.pause_seconds>30)throw Error('pause_seconds deve estar entre 0,3 e 30 segundos.');
+ if(g.answer_seconds!==undefined&&g.answer_seconds!==null&&(!Number.isFinite(g.answer_seconds)||g.answer_seconds<=0||g.answer_seconds>900))throw Error('answer_seconds deve ser null ou entre 0 e 900 segundos.');
+ if(data.objective!==undefined&&(typeof data.objective!=='string'||data.objective.length>350))throw Error('objective deve ser texto com até 350 caracteres.');
+ return {version:5,profile:data.profile,session:data.session.trim(),objective:(data.objective||'').trim(),questions:data.questions.map(q=>q.trim()),goals:{start_seconds:g.start_seconds,pause_seconds:g.pause_seconds,answer_seconds:g.answer_seconds??null}};
+}
+function setPlanUI(p){
+ $('start').disabled=!p;
+ $('countBadge').textContent=p?p.questions.length+' pergunta'+(p.questions.length===1?'':'s'):'Aguardando plano do GPT';
+ $('targetBadge').textContent=p?(p.goals.start_seconds===null?'Sem meta de início':'Meta de início: '+p.goals.start_seconds+' s'):'Metas definidas pelo GPT';
+ $('planStatus').textContent=p?'Plano validado: '+p.session+' • '+p.questions.length+' pergunta(s) • pausas ≥ '+p.goals.pause_seconds+' s'+(p.goals.answer_seconds!==null?' • meta de resposta: '+p.goals.answer_seconds+' s':'')+(p.objective?' • Objetivo: '+p.objective:''):'Peça ao ChatGPT um plano de sessão para o Family English Lab V5.1. Sem um plano válido, o aplicativo não escolhe conteúdo nem metas por conta própria.';
+ $('planStatus').classList.toggle('good',!!p);
+}
+function validatePlan(){
+ try{let p=parsePlan($('planInput').value.trim());plan=p;setPlanUI(p);if(profile!==p.profile)choose(p.profile);return p}
+ catch(e){plan=null;setPlanUI(null);$('planStatus').textContent=e.message;return null}
+}
+function safeGet(k){try{return JSON.parse(localStorage.getItem(k)||'null')}catch(e){return null}}
+function safeSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function save(){safeSet(key(),{v:5,questions,answers,index,session,plan})}
+function clear(){try{localStorage.removeItem(key())}catch(e){}}
+function choose(p){if(!PROFILES[p])return;profile=p;document.querySelectorAll('.profile').forEach(b=>b.classList.toggle('active',b.dataset.profile===p));$('profileDesc').textContent='Perfil selecionado: '+PROFILES[p].name+'. O conteúdo, a quantidade e as metas virão exclusivamente do plano do ChatGPT.';safeSet('familyLabV5:lastProfile',p);updateHistory();checkResume()}
+function checkResume(){let s=safeGet(key());let yes=s&&s.v===5&&s.questions?.length&&s.index<s.questions.length;$('resume').classList.toggle('hidden',!yes);$('resumeDesc').textContent=yes?`Você respondeu ${s.answers.length} de ${s.questions.length} perguntas no perfil ${PROFILES[profile].name}.`:''}
+function updateHistory(){let h=safeGet(historyKey())||[];let sessions=h.length,qs=h.reduce((a,x)=>a+x.count,0),days=new Set(h.map(x=>x.date.slice(0,10))).size;$('history').innerHTML=`<div class="stat"><strong>${sessions}</strong><span>Sessões</span></div><div class="stat"><strong>${qs}</strong><span>Respostas</span></div><div class="stat"><strong>${days}</strong><span>Dias registrados</span></div>`}
+function shuffle(a){a=[...a];for(let n=a.length-1;n>0;n--){let j=Math.floor(Math.random()*(n+1));[a[n],a[j]]=[a[j],a[n]]}return a}
+function status(t,good=false){$('status').textContent=t;$('status').classList.toggle('good',good)}
+async function microphone(){if(stream)return true;try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});audioCtx=new(window.AudioContext||window.webkitAudioContext)();await audioCtx.resume();let src=audioCtx.createMediaStreamSource(stream);analyser=audioCtx.createAnalyser();analyser.fftSize=2048;src.connect(analyser);return true}catch(e){alert('Não foi possível acessar o microfone. Abra em HTTPS, autorize o microfone e tente novamente.');return false}}
+function rms(){if(!analyser)return 0;let d=new Uint8Array(analyser.fftSize);analyser.getByteTimeDomainData(d);let sum=0;for(let x of d){let v=(x-128)/128;sum+=v*v}return Math.sqrt(sum/d.length)}
+async function calibrate(){status('Calibrando o ambiente. Fique em silêncio por um instante…');let a=[];for(let n=0;n<24;n++){a.push(rms());await new Promise(r=>setTimeout(r,50))}a.sort((x,y)=>x-y);noise=Math.max(.008,Math.min(.06,(a[18]||.008)*2.6));status('Pronto! Toque para ouvir a pergunta.',true)}
+function showRun(){ $('setup').classList.add('hidden');$('resume').classList.add('hidden');$('done').classList.add('hidden');$('run').classList.remove('hidden');prep()}
+function prep(){blob=null;recognized='';feel='';segments=[];$('progress').textContent=`Pergunta ${index+1} de ${questions.length} • ${PROFILES[profile].name}`;$('question').textContent='Pergunta escondida';$('show').classList.remove('hidden');$('show').disabled=false;$('ready').classList.add('hidden');$('finish').classList.add('hidden');$('review').classList.add('hidden');$('latency').classList.toggle('hidden',!plan||plan.goals.start_seconds===null);$('latency').textContent='Início: —';$('duration').textContent='Resposta: —'+(plan?.goals.answer_seconds!==null?' / meta '+plan.goals.answer_seconds+' s':'');$('duration').style.color='';$('timeline').innerHTML='';$('level').style.width='0';$('transcript').value='';$('reason').value='';$('transcriptStatus').textContent='';document.querySelectorAll('.feel').forEach(b=>b.classList.remove('active'));status('Toque para ouvir a pergunta.')}
+async function speak(q){if(!('speechSynthesis' in window))return;return new Promise(resolve=>{let finished=false,done=()=>{if(!finished){finished=true;resolve()}};speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(q);u.lang='en-US';u.rate=.85;u.onend=done;u.onerror=done;speechSynthesis.speak(u);setTimeout(done,Math.max(4500,q.length*150))})}
+function startSpeechRecognition(){let SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){$('transcriptStatus').textContent='Transcrição automática indisponível neste navegador. Você pode escrever ou corrigir a resposta.';return}try{recognition=new SR();recognition.lang='en-US';recognition.continuous=true;recognition.interimResults=true;recognition.onresult=e=>{let t='';for(let j=0;j<e.results.length;j++)t+=e.results[j][0].transcript+' ';recognized=t.trim()};recognition.onerror=()=>{};recognition.start()}catch(e){}}
+function liveMeter(){let threshold=noise*.75,stopStart=null,startStart=null;function loop(){if(!recording)return;let t=now(),v=rms();$('level').style.width=Math.min(100,v/Math.max(noise,.008)*48)+'%';$('duration').textContent='Resposta: '+fmt(t-recordStart)+' s'+(plan?.goals.answer_seconds!==null?' / meta '+plan.goals.answer_seconds+' s':'');$('duration').style.color=(plan?.goals.answer_seconds!==null && (t-recordStart)>plan.goals.answer_seconds*1000)?'#ad3030':'';if(!speaking){if(v>noise){if(startStart===null)startStart=t;if(t-startStart>170){if(segmentStart<startStart)segments.push({type:'silence',start:segmentStart,end:startStart});segmentStart=startStart;speaking=true;startStart=null}}else startStart=null}else{if(v<threshold){if(stopStart===null)stopStart=t;if(t-stopStart>550){segments.push({type:'speech',start:segmentStart,end:stopStart});segmentStart=stopStart;speaking=false;stopStart=null}}else stopStart=null}raf=requestAnimationFrame(loop)}loop()}
+async function stopRecord(discard=false){if(!recording)return null;recording=false;cancelAnimationFrame(raf);stopAt=now();if(segmentStart<stopAt)segments.push({type:speaking?'speech':'silence',start:segmentStart,end:stopAt});if(recognition)try{recognition.stop()}catch(e){};return new Promise(resolve=>{if(!recorder||recorder.state==='inactive'){resolve(null);return}recorder.onstop=()=>{blob=discard?null:new Blob(chunks,{type:recorder.mimeType});resolve(blob)};recorder.stop()})}
+function drawTimeline(){let total=Math.max(1,stopAt-recordStart);$('timeline').innerHTML='';for(let s of segments){let e=document.createElement('div');e.className=s.type;e.style.width=Math.max(0,(s.end-s.start)/total*100)+'%';$('timeline').appendChild(e)}}
+async function refineAudio(b){try{let raw=await b.arrayBuffer(),ctx=new(window.AudioContext||window.webkitAudioContext)(),buf=await ctx.decodeAudioData(raw.slice(0)),hop=Math.max(1,Math.floor(buf.sampleRate*.015)),windowSize=Math.max(hop,Math.floor(buf.sampleRate*.03)),r=[];for(let i=0;i+windowSize<buf.length;i+=hop){let sum=0,n=0;for(let c=0;c<buf.numberOfChannels;c++){let data=buf.getChannelData(c);for(let k=i;k<i+windowSize;k+=3){sum+=data[k]*data[k];n++}}r.push(Math.sqrt(sum/Math.max(1,n)))}if(r.length<5)return;let sorted=[...r].sort((a,b)=>a-b),low=sorted[Math.floor(sorted.length*.2)],hi=sorted[Math.floor(sorted.length*.9)],thr=Math.max(.0015,low*1.2,low+(hi-low)*.2),ints=[],on=null;for(let j=0;j<r.length;j++){if(r[j]>=thr&&on===null)on=j;if(r[j]<thr&&on!==null){ints.push([on*hop/buf.sampleRate,(j*hop+windowSize)/buf.sampleRate]);on=null}}if(on!==null)ints.push([on*hop/buf.sampleRate,buf.duration]);ints=ints.filter(([a,z])=>z-a>.09);let merged=[];for(let x of ints){if(!merged.length||x[0]-merged[merged.length-1][1]>.35)merged.push([...x]);else merged[merged.length-1][1]=Math.max(merged[merged.length-1][1],x[1])}if(!merged.length)return;let last=merged[merged.length-1][1],cursor=0;segments=[];for(let [a,z] of merged){if(a>cursor)segments.push({type:'silence',start:recordStart+cursor*1000,end:recordStart+a*1000});segments.push({type:'speech',start:recordStart+a*1000,end:recordStart+z*1000});cursor=z}stopAt=recordStart+last*1000;try{ctx.close()}catch(e){}}catch(e){console.warn('Análise de áudio indisponível',e)}}
+async function transcribeWhisper(b){$('transcriptStatus').textContent='Tentando transcrição local Whisper. Na primeira vez pode demorar…';try{if(!voicePromise){voicePromise=(async()=>{let mod=await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.0');mod.env.allowLocalModels=false;return mod.pipeline('automatic-speech-recognition','onnx-community/whisper-tiny.en',{dtype:'q8'})})()}let model=await voicePromise;let audio=await audioCtx.decodeAudioData((await b.arrayBuffer()).slice(0)),len=Math.ceil(audio.duration*16000),out=new Float32Array(len);for(let i=0;i<len;i++){let j=Math.min(audio.length-1,Math.floor(i*audio.sampleRate/16000)),sum=0;for(let c=0;c<audio.numberOfChannels;c++)sum+=audio.getChannelData(c)[j];out[i]=sum/audio.numberOfChannels}let t=await model(out,{language:'en',task:'transcribe',chunk_length_s:30,stride_length_s:4});if(t?.text?.trim()){$('transcriptStatus').textContent='Transcrição Whisper local (revise antes de salvar).';return t.text.trim()}}catch(e){voicePromise=null;console.warn('Whisper não disponível',e)}$('transcriptStatus').textContent='Whisper indisponível; usando reconhecimento do navegador (revise o texto).';return recognized}
+function commit(){let pauseThreshold=(plan?.goals.pause_seconds??1)*1000,pauses=segments.filter(x=>x.type==='silence'&&x.end-x.start>=pauseThreshold),speech=segments.filter(x=>x.type==='speech').reduce((s,x)=>s+x.end-x.start,0),silence=segments.filter(x=>x.type==='silence').reduce((s,x)=>s+x.end-x.start,0);answers.push({q:questions[index],lat:latencyMs,dur:stopAt-recordStart,speech,silence,pauses:pauses.length,maxPause:Math.max(0,...pauses.map(x=>x.end-x.start)),text:$('transcript').value.trim(),feel,reason:$('reason').value});index++;save()}
+function report(early){
+ clear();$('run').classList.add('hidden');$('resume').classList.add('hidden');$('done').classList.remove('hidden');$('doneTitle').textContent=early?'Relatório parcial':'Sessão concluída';
+ let g=plan?.goals||{start_seconds:null,pause_seconds:1,answer_seconds:null},target=g.start_seconds,avg=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:0,lat=avg(answers.map(x=>x.lat)),dur=avg(answers.map(x=>x.dur)),within=target!==null?answers.filter(x=>x.lat<=target*1000).length:null;
+ $('summary').innerHTML=`<span class="metric">Respondidas: ${answers.length}/${questions.length}</span><span class="metric">Duração média: ${fmt(dur)} s</span>`+(target!==null?`<span class="metric">Início médio: ${fmt(lat)} s</span><span class="metric">Dentro da meta: ${within}/${answers.length}</span>`:'<span class="metric">Sem meta de velocidade</span>');
+ let t=`FAMILY ENGLISH LAB — V5.1\nPerfil: ${PROFILES[profile].name}\nSessão: ${session}${early?' (parcial)':''}\nData: ${new Date().toLocaleDateString('pt-BR')}\nObjetivo definido pelo GPT: ${plan?.objective||'não informado'}\nRespostas: ${answers.length}/${questions.length}\nMeta de início definida pelo GPT: ${target!==null?'≤ '+target+' s':'sem meta'}\nPausa relevante definida pelo GPT: ≥ ${g.pause_seconds} s\nMeta de duração de resposta: ${g.answer_seconds!==null?g.answer_seconds+' s':'sem meta'}\nLatência por toque: ${fmt(lat)} s (não é o início acústico exato)\nDuração média: ${fmt(dur)} s\nNota: transcrição automática pode falhar; a fala real prevalece.\n\n`;
+ answers.forEach((a,n)=>{t+=`Q${n+1}: ${a.q}\nInício: ${fmt(a.lat)} s | Duração: ${fmt(a.dur)} s | Fala: ${fmt(a.speech)} s | Silêncio: ${fmt(a.silence)} s | Pausas ≥${g.pause_seconds}s: ${a.pauses}\nAutoavaliação: ${a.feel||'não informada'}${a.reason?' | Dificuldade: '+a.reason:''}\nTranscrição: ${a.text||'[não registrada]'}\n\n`});
+ t+='INSTRUÇÃO AO CHATGPT: Interprete os resultados de acordo com o plano e o nível real do estudante. Tempos são métricas, não notas automáticas. Não confunda erro de transcrição com erro de fala. Corrija uma questão por vez e pergunte se há dúvidas antes do próximo exercício.';
+ $('report').value=t;let h=safeGet(historyKey())||[];h.push({date:new Date().toISOString(),count:answers.length,session});safeSet(historyKey(),h.slice(-200));updateHistory()
+}
+function stopSpeech(){if('speechSynthesis' in window)speechSynthesis.cancel()}
+function showSetup(){$('done').classList.add('hidden');$('run').classList.add('hidden');$('setup').classList.remove('hidden');checkResume()}
+document.querySelectorAll('.profile').forEach(b=>b.onclick=()=>{choose(b.dataset.profile);if(plan&&plan.profile!==profile){plan=null;setPlanUI(null)}});
+$('validate').onclick=validatePlan;
+$('editLinked').onclick=()=>{$('manualPlan').classList.remove('hidden');$('editLinked').classList.add('hidden');$('planInput').focus()};
+function loadedFromGPT(raw){
+ $('planInput').value=raw;
+ const p=validatePlan();
+ if(!p){$('manualPlan').classList.remove('hidden');$('linkedPlan').classList.add('hidden');return}
+ $('manualPlan').classList.add('hidden');
+ $('linkedPlan').classList.remove('hidden');
+ $('editLinked').classList.remove('hidden');
+ $('start').textContent='▶ Iniciar exercício de '+PROFILES[p.profile].name;
+ $('linkedPlan').querySelector('p').textContent=p.session+' • '+p.questions.length+' pergunta(s) • '+(p.goals.start_seconds===null?'sem meta de velocidade':'início em até '+p.goals.start_seconds+' s')+'. Toque em Iniciar exercício para autorizar o microfone.';
+}
+$('planInput').oninput=()=>{plan=null;setPlanUI(null)};
+$('start').onclick=async()=>{let p=validatePlan();if(!p)return;if(!await microphone())return;questions=[...p.questions];session=p.session;answers=[];index=0;clear();showRun();await calibrate()};
+$('resumeBtn').onclick=async()=>{let s=safeGet(key());if(!s||!await microphone())return;questions=s.questions;answers=s.answers;index=s.index;session=s.session;plan=s.plan;setPlanUI(plan);showRun();await calibrate()};
+$('discard').onclick=()=>{clear();checkResume()};
+$('show').onclick=async()=>{$('show').disabled=true;$('show').classList.add('hidden');$('question').textContent=questions[index];status('Ouça a pergunta em inglês…');await speak(questions[index]);latencyStart=now();$('ready').classList.remove('hidden');status(plan?.goals.start_seconds!==null?'Quando estiver pronto para falar, toque no botão.':'Pense com calma. Não há meta de velocidade.');};
+$('ready').onclick=()=>{latencyMs=now()-latencyStart;recordStart=now();stopAt=recordStart;segmentStart=recordStart;segments=[];speaking=false;chunks=[];recognized='';blob=null;try{recorder=new MediaRecorder(stream);recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};recorder.start()}catch(e){alert('Este navegador não permite gravar áudio.');return}recording=true;$('latency').textContent='Início: '+fmt(latencyMs)+' s';$('ready').classList.add('hidden');$('finish').classList.remove('hidden');status('Responda naturalmente. Toque em “Terminei” quando concluir.',true);startSpeechRecognition();liveMeter()};
+$('finish').onclick=async()=>{$('finish').disabled=true;let b=await stopRecord();$('finish').disabled=false;$('finish').classList.add('hidden');if(!b){status('Não foi possível gravar. Tente novamente.');$('show').classList.remove('hidden');return}status('Analisando o áudio…');await refineAudio(b);drawTimeline();$('duration').textContent='Resposta: '+fmt(stopAt-recordStart)+' s';$('review').classList.remove('hidden');$('audio').src=URL.createObjectURL(b);$('transcript').value=recognized;$('transcriptStatus').textContent='Você pode corrigir o texto enquanto o Whisper processa.';let myBlob=b;let t=await transcribeWhisper(b);if(blob===myBlob&&!$('review').classList.contains('hidden')&&!$('transcript').dataset.edited)$('transcript').value=t;status('Resposta pronta para revisar e salvar.',true)};
+$('transcript').oninput=()=>{$('transcript').dataset.edited='yes'};
+document.querySelectorAll('.feel').forEach(b=>b.onclick=()=>{feel=b.dataset.feel;document.querySelectorAll('.feel').forEach(x=>x.classList.toggle('active',x===b))});
+$('next').onclick=()=>{commit();$('transcript').dataset.edited='';if(index<questions.length)prep();else report(false)};
+$('pause').onclick=async()=>{if(recording){if(!confirm('A gravação atual não será salva. Pausar mesmo assim?'))return;await stopRecord(true)}else if(!$('review').classList.contains('hidden')){commit()}stopSpeech();save();$('run').classList.add('hidden');$('setup').classList.remove('hidden');checkResume()};
+$('end').onclick=async()=>{if(recording){if(!confirm('A gravação atual não será salva. Encerrar mesmo assim?'))return;await stopRecord(true)}else if(!$('review').classList.contains('hidden'))commit();stopSpeech();report(true)};
+$('copy').onclick=async()=>{try{await navigator.clipboard.writeText($('report').value);$('copy').textContent='Copiado ✓'}catch(e){$('report').select();alert('Selecione e copie o texto do relatório.')}};
+$('share').onclick=async()=>{try{if(navigator.share)await navigator.share({title:'Family English Lab — '+PROFILES[profile].name,text:$('report').value});else await navigator.clipboard.writeText($('report').value)}catch(e){}};
+$('again').onclick=showSetup;
+let initial=hp.get('profile');if(!PROFILES[initial])initial=safeGet('familyLabV5:lastProfile')||'elias';if(!PROFILES[initial])initial='elias';
+choose(initial);setPlanUI(null);
+if(hp.has('json')){
+ // Link simples gerado pelo GPT: #json=encodeURIComponent(JSON.stringify(plano)).
+ // URLSearchParams já realiza a decodificação de caracteres especiais.
+ loadedFromGPT(hp.get('json'));
+}else if(hp.has('plan')){
+ // Compatibilidade com links V5: JSON UTF-8 codificado em base64url.
+ loadedFromGPT(decodeBase64url(hp.get('plan')));
+}else if(hp.has('q')){
+ // Compatibilidade com links individuais V3.5: parâmetros enviados pelo ChatGPT, nunca perguntas fixas.
+ const q=decodeBase64url(hp.get('q')),s=decodeBase64url(hp.get('s'))||'Pergunta personalizada do GPT';
+ const t=hp.has('t')?Number(hp.get('t')):null,p=hp.has('p')?Number(hp.get('p')):1;
+ if(q){$('planInput').value=JSON.stringify({version:5,profile:initial,session:s,questions:[q],goals:{start_seconds:t,pause_seconds:p}},null,2);validatePlan()}
+}
+
+</script>
+</body></html>
